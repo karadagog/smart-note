@@ -1,74 +1,58 @@
-package main.java.repository;
+// src/main/java/main/java/repository/NoteRepository.java
+package repository;
 
-import main.java.cache.LRUCache;
-import main.java.model.Note;
-import main.java.util.ConfigLoader;
+import model.Note;
+import util.ConfigLoader;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.*;
 
 public class NoteRepository {
-
-    private final List<Note> notes = new CopyOnWriteArrayList<>();
-    private final LRUCache<String, Note> cache;
-    private final FileRepository fileRepository;
+    private final List<Note> notes = new ArrayList<>();
+    private final FileRepository fileRepository = new FileRepository();
+    private final String filePath = ConfigLoader.get("data.file");
 
     public NoteRepository() {
-        int cacheSize = ConfigLoader.getInt("max.cache.size", 5);
-        this.cache = new LRUCache<>(cacheSize);
-        this.fileRepository = new FileRepository();
         loadFromFile();
     }
 
-
-
-    public void add(Note note){
- /*       if (note == null) {
-            throw new IllegalArgumentException();
-        }
-
-  */
+    public void add(Note note) {
         Objects.requireNonNull(note, "Note cannot be null!");
         notes.add(note);
-        cache.put(note.getId(), note);
+        saveToFile();
     }
 
-
-
     public Optional<Note> findById(String id) {
-        Note cached = cache.get(id);
-        if (cached != null) return Optional.of(cached);
-
-        return notes.stream()
-                .filter(note -> note.getId().equals(id))
-                .findFirst();
+        return notes.stream().filter(n -> n.getId().equals(id)).findFirst();
     }
 
     public List<Note> findAll() {
-        return new ArrayList<>(notes);
+        return Collections.unmodifiableList(notes);
     }
 
-    public void saveToFile() {
-        fileRepository.save(notes);
-    }
-
-    private void loadFromFile() {
-        List<Note> loaded = fileRepository.load();
-        notes.clear();
-        notes.addAll(loaded);
-        loaded.forEach(note -> cache.put(note.getId(), note));
+    public void deleteById(String id) {
+        notes.removeIf(n -> n.getId().equals(id));
+        saveToFile();
     }
 
     public void clear() {
         notes.clear();
-        cache.clear();
+        saveToFile();
     }
 
-    public void deleteById(String id) {
-        notes.removeIf(note -> note.getId().equals(id));
-        cache.remove(id);
+    public void saveToFile() {
+        fileRepository.save(notes, filePath);
+    }
+
+    @SuppressWarnings("unchecked")
+    private void loadFromFile() {
+        if (!Files.exists(Paths.get(filePath))) return;
+
+        List<Note> loaded = fileRepository.load(filePath);
+        if (loaded != null) {
+            notes.clear();
+            notes.addAll(loaded);
+        }
     }
 }

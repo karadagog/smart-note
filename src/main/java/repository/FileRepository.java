@@ -1,48 +1,40 @@
-package main.java.repository;
+// src/main/java/main/java/repository/FileRepository.java
+package repository;
 
-import main.java.model.Note;
-import main.java.util.ConfigLoader;
+
+import model.Note;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
 public class FileRepository {
 
-    private final String filePath;
-
-    public FileRepository() {
-        this.filePath = ConfigLoader.get("data.file", "notes.dat");
-    }
-
-
-    public void save(List<Note> notes) {
+    public void save(List<Note> notes, String filePath) {
         try {
-            ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(filePath));
-            oos.writeObject(new ArrayList<>(notes));
-            System.out.println("[File] Notlar kaydedildi: " + filePath);
-        } catch (FileNotFoundException e) {
-            System.err.println("Dosya okuma hatası " + e.getMessage());
+            Files.createDirectories(Paths.get(filePath).getParent());
+            try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(filePath))) {
+                oos.writeObject(new ArrayList<>(notes));
+            }
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            System.err.println("Dosyaya kaydetme hatası: " + e.getMessage());
         }
     }
 
     @SuppressWarnings("unchecked")
-    public List<Note> load() {
-        File file = new File(filePath);
-        if (!file.exists()) return new ArrayList<>();
-        try {
-            ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file));
+    public List<Note> load(String filePath) {
+        if (!Files.exists(Paths.get(filePath))) return null;
+
+        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(filePath))) {
             Object obj = ois.readObject();
-            if (obj instanceof List) {
-                return (List<Note>) obj;
+            if (obj instanceof List<?> list && !list.isEmpty() && list.get(0) instanceof Note) {
+                return new ArrayList<>((List<Note>) list);
             }
         } catch (IOException | ClassNotFoundException e) {
-            System.err.println("Dosya okuma hatası: " + e.getMessage());
+            System.err.println("Dosyadan yükleme hatası: " + e.getMessage());
         }
-        return new ArrayList<>();
+        return null;
     }
-
-
 }

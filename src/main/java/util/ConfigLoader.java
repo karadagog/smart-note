@@ -1,4 +1,4 @@
-package main.java.util;
+package util;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -7,7 +7,7 @@ import java.util.Properties;
 public class ConfigLoader {
 
     private static final Properties props = new Properties();
-    private static final String CONFIG_FILE = "main/resources/config.properties";
+    private static final String CONFIG_FILE = "config.properties";
 
     static  {
         load();
@@ -21,10 +21,10 @@ public class ConfigLoader {
                 return;
             }
             props.load(is);
-            System.out.println("Config yüklendi " + CONFIG_FILE);
+            System.out.println("Config yüklendi: " + CONFIG_FILE);
 
         } catch (IOException e) {
-            System.err.println("Config okuma hatası " + e.getMessage());
+            System.err.println("Config okuma hatası: " + e.getMessage());
         }
     }
 

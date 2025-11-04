@@ -1,4 +1,4 @@
-package main.java.model;
+package model;
 
 public enum Category {
 
@@ -8,8 +8,8 @@ public enum Category {
     URGENT("Acil", 1),
     OTHER("Diğer", 0);
 
-    private  String displayName;
-    private int priority;
+    private final String displayName;
+    private final int priority;
 
     Category(String displayName, int priority) {
         this.displayName=displayName;
