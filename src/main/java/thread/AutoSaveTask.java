@@ -1,7 +1,8 @@
-package main.java.thread;
+package thread;
 
-import main.java.repository.NoteRepository;
-import main.java.util.ConfigLoader;
+
+import repository.NoteRepository;
+import util.ConfigLoader;
 
 public class AutoSaveTask implements Runnable{
 

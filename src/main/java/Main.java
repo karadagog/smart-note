@@ -1,9 +1,7 @@
-package main.java;
-
-import main.java.app.ConsoleMenu;
-import main.java.repository.NoteRepository;
-import main.java.thread.AutoSaveTask;
-import main.java.util.ConfigLoader;
+import app.ConsoleMenu;
+import repository.NoteRepository;
+import thread.AutoSaveTask;
+import util.ConfigLoader;
 
 public class Main {
 
