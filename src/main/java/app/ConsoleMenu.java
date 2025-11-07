@@ -1,10 +1,9 @@
-// src/main/java/main/java/app/ConsoleMenu.java
+// src/main/java/app/ConsoleMenu.java
 package app;
 
-
-import exception.NoteNotFoundException;
 import model.Category;
 import model.Note;
+import repository.FileRepository;
 import repository.NoteRepository;
 
 import java.util.List;
@@ -12,12 +11,16 @@ import java.util.Scanner;
 
 public class ConsoleMenu {
 
-    private final NoteRepository noteRepository;
+    private final FileRepository fileRepo;
     private final Scanner scanner = new Scanner(System.in);
+    private final String filePath;
 
-    public ConsoleMenu(NoteRepository noteRepository) {
-        this.noteRepository = noteRepository;
+    public ConsoleMenu(FileRepository fileRepo, String filePath) {
+        this.fileRepo = fileRepo;
+        this.filePath = filePath;
     }
+
+
 
     public void start() {
         while (true) {
@@ -49,10 +52,14 @@ public class ConsoleMenu {
             return;
         }
 
-        Note note = noteRepository.findById(id)
-                .orElseThrow(() -> new NoteNotFoundException(id));
+        List<Note> notes = fileRepo.load(filePath);
+        Note note = notes.stream()
+                .filter(n -> n.getId().equals(id))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Not bulunamadı: " + id));
 
-        noteRepository.deleteById(id);
+        notes.remove(note);
+        fileRepo.save(notes, filePath);
         System.out.println("Silindi: " + note.getTitle() + " (" + id + ")");
     }
 
@@ -64,7 +71,7 @@ public class ConsoleMenu {
             return;
         }
 
-        noteRepository.findAll().stream()
+        fileRepo.load(filePath).stream()
                 .filter(note -> (note.getTitle() != null && note.getTitle().toLowerCase().contains(keyword)) ||
                         (note.getContent() != null && note.getContent().toLowerCase().contains(keyword)))
                 .sorted()
@@ -72,7 +79,7 @@ public class ConsoleMenu {
     }
 
     private void listNotes() {
-        List<Note> all = noteRepository.findAll();
+        List<Note> all = fileRepo.load(filePath);
         if (all.isEmpty()) {
             System.out.println("Henüz not yok.");
             return;
@@ -103,7 +110,9 @@ public class ConsoleMenu {
         }
 
         Note note = new Note(title, content, category);
-        noteRepository.add(note);
+        List<Note> notes = fileRepo.load(filePath);
+        notes.add(note);
+        fileRepo.save(notes, filePath);
         System.out.println("Not eklendi: " + note.getId());
     }
 

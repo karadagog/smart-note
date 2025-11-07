@@ -1,5 +1,6 @@
+// src/main/java/Main.java
 import app.ConsoleMenu;
-import repository.NoteRepository;
+import repository.FileRepository;
 import thread.AutoSaveTask;
 import util.ConfigLoader;
 
@@ -9,12 +10,18 @@ public class Main {
 
         System.out.println("Başlıyor... " + ConfigLoader.get("app.name") + " v" + ConfigLoader.get("app.version"));
 
-        NoteRepository noteRepository = new NoteRepository();
+        String filePath = ConfigLoader.get("notes.file");
+        if (filePath == null || filePath.isBlank()) {
+            filePath = "notes.dat"; // Güvenlik
+            System.err.println("notes.file eksik! Varsayılan: notes.dat");
+        }
 
-        Thread autoSaveThread = new Thread(new AutoSaveTask(noteRepository));
-        autoSaveThread.setDaemon(true);  // Program kapanınca thread de kapansın
+        FileRepository fileRepo = new FileRepository();
+
+        Thread autoSaveThread = new Thread(new AutoSaveTask(fileRepo, filePath));
+        autoSaveThread.setDaemon(true);
         autoSaveThread.start();
 
-        new ConsoleMenu(noteRepository).start();
+        new ConsoleMenu(fileRepo, filePath).start();
     }
 }
