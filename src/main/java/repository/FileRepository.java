@@ -23,17 +23,20 @@ public class FileRepository {
 
     @SuppressWarnings("unchecked")
     public List<Note> load(String filePath) {
-        if (!Files.exists(Paths.get(filePath))) {
-            return new ArrayList<>(); // NULL YERİNE BOŞ LİSTE!
+        if (filePath == null || filePath.isBlank()) {
+            return new ArrayList<>(); // Boş liste
         }
-        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(filePath))) {
-            Object obj = ois.readObject();
-            if (obj instanceof List<?> list && !list.isEmpty() && list.get(0) instanceof Note) {
-                return new ArrayList<>((List<Note>) list);
+            if (!Files.exists(Paths.get(filePath))) {
+                return new ArrayList<>(); // NULL YERİNE BOŞ LİSTE!
             }
-        } catch (IOException | ClassNotFoundException e) {
-            System.err.println("Load error: " + e.getMessage());
+            try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(filePath))) {
+                Object obj = ois.readObject();
+                if (obj instanceof List<?> list && !list.isEmpty() && list.get(0) instanceof Note) {
+                    return new ArrayList<>((List<Note>) list);
+                }
+            } catch (IOException | ClassNotFoundException e) {
+                System.err.println("Load error: " + e.getMessage());
+            }
+            return new ArrayList<>(); // HATA DURUMUNDA DA BOŞ LİSTE!
         }
-        return new ArrayList<>(); // HATA DURUMUNDA DA BOŞ LİSTE!
     }
-}

@@ -1,33 +1,49 @@
+// src/main/java/thread/AutoSaveTask.java
 package thread;
 
+import model.Note;
+import repository.FileRepository;
 
-import repository.NoteRepository;
-import util.ConfigLoader;
+import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
-public class AutoSaveTask implements Runnable{
+public class AutoSaveTask implements Runnable {
 
-    private final NoteRepository noteRepository;
-    private final long interval;
+    private final FileRepository fileRepo;
+    private final String filePath;
+    private List<Note> notes;
+    private final Timer timer = new Timer(true);
 
-    public AutoSaveTask(NoteRepository noteRepository) {
-        this.noteRepository = noteRepository;
-        this.interval = ConfigLoader.getInt("autosave.interval", 30000);
+    public AutoSaveTask(FileRepository fileRepo, String filePath) {
+        this.fileRepo = fileRepo;
+        this.filePath = filePath;
+        this.notes = fileRepo.load(filePath);
     }
-
 
     @Override
     public void run() {
-        while (!Thread.currentThread().isInterrupted()) {
-            try {
-                Thread.sleep(interval);
-                noteRepository.saveToFile();
-                System.out.println("[Autosave] Notlar Kaydedildi.");
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                System.out.println("[Autosave] Durduruldu");
-                break;
+        timer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                saveIfChanged();
             }
-        }
+        }, 30_000, 30_000); // 30 saniyede bir
 
+        // Sonsuz bekle (daemon thread)
+        try {
+            Thread.currentThread().join();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+    }
+
+    private void saveIfChanged() {
+        List<Note> current = fileRepo.load(filePath);
+        if (!current.equals(notes)) {
+            fileRepo.save(current, filePath);
+            System.out.println("[AutoSave] Notlar kaydedildi: " + current.size() + " adet");
+            notes = current;
+        }
     }
 }
