@@ -1,5 +1,5 @@
 // src/test/java/model/NoteTest.java
-package test.java.com.smartnote.model;
+package com.smartnote.model.test.java.com.smartnote.model;
 
 
 import model.Category;

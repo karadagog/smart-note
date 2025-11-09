@@ -1,5 +1,5 @@
 // src/test/java/repository/FileRepositoryIT.java
-package test.java.com.smartnote.repository;
+package com.smartnote.model.test.java.com.smartnote.repository;
 
 import model.Note;
 import model.Category;
